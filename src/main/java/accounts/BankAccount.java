@@ -1,15 +1,17 @@
-package bank.account;
+package accounts;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 
-public abstract class BankAccount implements Serializable {
+public class BankAccount implements Serializable {
+    private static final long serialVersionUID = 1L;
     private String accountNumber;
     private String accountHolderName;
     private double balance;
     private List<String> transactionHistory;
+
 
     public BankAccount(String accountNumber, String accountHolderName) {
         this.accountNumber = accountNumber;
@@ -32,15 +34,15 @@ public abstract class BankAccount implements Serializable {
 
     public void deposit(double amount) {
         if (amount > 0) {
-            this.balance += amount;
+            this.balance = balance + amount;
             transactionHistory.add("Deposited: $" + amount);
         }
     }
 
     public boolean withdraw(double amount) {
         if (amount > 0 && amount <= balance) {
-            this.balance -= amount;
-            transactionHistory.add("Withdrew: $" + amount);
+            this.balance = balance - amount;
+            transactionHistory.add("Withdraw: $" + amount);
             return true;
         }
         return false;
