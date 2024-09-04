@@ -13,9 +13,9 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Bank {
+public class Bank implements Serializable {
     private Map<String, Customer> customers = new HashMap<>();
-    private List<Transaction> transactions = new ArrayList<>();
+    private List<Transaction> transactionHistory = new ArrayList<>();
     private static final String TRANSACTIONS_FILE = "transactions.txt";
 
     public void createAccount(String customerId, String accountHolderName, AccountType accountType) throws Exception {
@@ -53,7 +53,7 @@ public class Bank {
         if (account != null) {
             Transaction deposit = new DepositTransaction(account, amount);
             deposit.perform();
-            transactions.add(deposit);
+            transactionHistory.add(deposit);
             saveTransaction(deposit);
         } else {
             throw new InvalidAccountNumberException("Account not found.");
@@ -71,7 +71,7 @@ public class Bank {
             }
             Transaction withdrawal = new WithdrawTransaction(account, amount);
             withdrawal.perform();
-            transactions.add(withdrawal);
+            transactionHistory.add(withdrawal);
             saveTransaction(withdrawal);
         } else {
             throw new InvalidAccountNumberException("Account not found.");
@@ -120,10 +120,12 @@ public class Bank {
     }
 
     private void saveTransaction(Transaction transaction) throws IOException {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(TRANSACTIONS_FILE, true))) {
+
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(TRANSACTIONS_FILE))) {
             oos.writeObject(transaction);
         } catch (IOException e) {
             e.printStackTrace();
         }
+
     }
 }

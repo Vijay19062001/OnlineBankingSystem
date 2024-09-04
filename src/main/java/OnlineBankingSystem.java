@@ -4,7 +4,7 @@ import bank.Bank;
 import java.util.Scanner;
 
 public class OnlineBankingSystem {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 
         Bank bank = new Bank();
 
@@ -80,7 +80,7 @@ public class OnlineBankingSystem {
                             }
                     }
                 catch( Exception e){
-                        System.out.println("Error: " + e.getMessage());
+                        System.out.println( e.getMessage());
                     }
                 }
         }
