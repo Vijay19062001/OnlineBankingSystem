@@ -7,6 +7,7 @@ import java.util.List;
 
 public class BankAccount implements Serializable {
     private static final long serialVersionUID = 1L;
+
     private String accountNumber;
     private String accountHolderName;
     private double balance;
@@ -35,18 +36,23 @@ public class BankAccount implements Serializable {
     public void deposit(double amount) {
         if (amount > 0) {
             this.balance = balance + amount;
-            transactionHistory.add("Deposited: $" + amount);
+            transactionHistory.add("Deposited: $" + amount + " | Balance: $" + balance);
+
         }
     }
 
     public boolean withdraw(double amount) {
         if (amount > 0 && amount <= balance) {
             this.balance = balance - amount;
-            transactionHistory.add("Withdraw: $" + amount);
+            transactionHistory.add("Withdrawn: $" + amount + " | Balance: $" + balance);
             return true;
         }
         return false;
     }
+    public void addTransaction(String transactionDetail) {
+        transactionHistory.add(transactionDetail);
+    }
+
 
     public List<String> getTransactionHistory() {
         return transactionHistory;
