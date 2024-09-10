@@ -85,7 +85,7 @@ public class OnlineBankingSystem {
 
                         case 8:
                             System.out.print("Enter Account Number: ");
-                             transactionAccountNumber = scanner.next();
+                             String accountNumber = scanner.next();
                           bank.loadTransactionHistory();
                         break;
 

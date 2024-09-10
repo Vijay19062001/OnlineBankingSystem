@@ -13,17 +13,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class BankMethods implements Bank, Serializable {
-    private static final long serialVersionUID = 2L; // Use the correct version
 
-    private static final String TRANSACTIONS_FILE = "transactions.txt";
-    private static final String CUSTOMERS_FILE = "customers.txt";
     private Map<String, Customer> customers = new HashMap<>();
     private List<Transactions> transactionHistory = new ArrayList<>();
+    private static final String TRANSACTIONS_FILE = "transactions.txt";
+    private static final String CUSTOMERS_FILE = "customers.txt";
+    private static final long serialVersionUID = 2L; // Use the correct version
 
-    public BankMethods() {
-        loadTransactionHistory();
-        loadCustomers();
-    }
 
     @Override
     public void createAccount(String customerId, String accountHolderName, AccountType accountType) throws Exception {
@@ -194,26 +190,31 @@ public class BankMethods implements Bank, Serializable {
     }
 
     public void loadTransactionHistory() {
+//        List<Transactions> tempTransactionHistory = new ArrayList<>();
 
         try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(Paths.get(TRANSACTIONS_FILE)))) {
-            List<Transactions> tempTransactionHistory = new ArrayList<>();
-                try {
-                    Transactions transaction = (Transactions) ois.readObject();
-                    tempTransactionHistory.add(transaction);
-                } catch (Exception e) {
-                    System.out.println("error");
-                }
-            transactionHistory = tempTransactionHistory;
 
-            // Replace the old transaction history with the newly loaded on
-            System.out.println("Transaction history loaded.");
+while (true) {
 
-            // Display transactions using Stream API
-            System.out.println("Deserialized Transactions:");
-            transactionHistory.forEach(System.out::println);
+    try {
+        Transactions transaction = (Transactions) ois.readObject();
+        transactionHistory.add(transaction);
+    } catch (ClassNotFoundException e) {
+        System.out.println("error");
+    }
 
-        } catch (IOException e) {
+
+    // Replace the old transaction history with the newly loaded on
+    System.out.println("Transaction history loaded.");
+
+    // Display transactions using Stream API
+    System.out.println("Deserialized Transactions:");
+    transactionHistory.forEach(System.out::println);
+
+}
+        } catch (Exception e) {
             System.out.println("Error loading transaction history: " + e.getMessage());
+
         }
     }
 }

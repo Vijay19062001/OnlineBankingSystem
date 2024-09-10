@@ -15,41 +15,15 @@ public abstract class Transactions implements Serializable, Transaction {
         this.account = account;
         this.amount = amount;
     }
+    public void getAccount() {
+    }
+    public void getAccountNumber(){
 
-    public BankAccount getAccount() {
-        return account;
     }
 
-    public void setAccount(BankAccount account) {
-        this.account = account;
-    }
-
-    public double getAmount() {
-        return amount;
-    }
-
-    public void setAmount(double amount) {
-        this.amount = amount;
-    }
-
-    public BankAccount getFromAccount() {
-        return fromAccount;
-    }
-
-    public void setFromAccount(BankAccount fromAccount) {
-        this.fromAccount = fromAccount;
-    }
-
-    public BankAccount getToAccount() {
-        return toAccount;
-    }
-
-    public void setToAccount(BankAccount toAccount) {
-        this.toAccount = toAccount;
-    }
-
-    @Override
     public String toString() {
-        return "Transaction of $" + amount + " for account " + (account != null ? account.getAccountNumber() : "N/A");
+        return "Transaction of Rs:" + amount + " for account " +  account.getAccountNumber() ;
     }
+
+
 }
