@@ -22,7 +22,7 @@ public class BankMethods implements Bank, Serializable {
 
 
     @Override
-    public void createAccount(String customerId, String accountHolderName, AccountType accountType) throws Exception {
+    public void createAccount(String customerId, String accountHolderName, AccountType accountType) {
         Customer customer = customers.get(customerId);
         if (customerId == null || accountHolderName == null) {
             throw new NullValueException("Customer ID or Account Holder Name cannot be null.");
@@ -189,31 +189,26 @@ public class BankMethods implements Bank, Serializable {
         }
     }
 
-    public void loadTransactionHistory() {
-//        List<Transactions> tempTransactionHistory = new ArrayList<>();
+    public void loadTransactionHistory() throws IOException {
 
         try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(Paths.get(TRANSACTIONS_FILE)))) {
 
-while (true) {
+            while (true) {
+                try {
+                    Transactions transaction = (Transactions) ois.readObject();
+                    transactionHistory.add(transaction);
+                } catch (IOException | ClassNotFoundException e) {
+                    // End of file reached, break the loop
+                    break;
+                }
 
-    try {
-        Transactions transaction = (Transactions) ois.readObject();
-        transactionHistory.add(transaction);
-    } catch (ClassNotFoundException e) {
-        System.out.println("error");
-    }
+                // Replace the old transaction history with the newly loaded one
+                System.out.println("Transaction history loaded.");
 
-
-    // Replace the old transaction history with the newly loaded on
-    System.out.println("Transaction history loaded.");
-
-    // Display transactions using Stream API
-    System.out.println("Deserialized Transactions:");
-    transactionHistory.forEach(System.out::println);
-
-}
-        } catch (Exception e) {
-            System.out.println("Error loading transaction history: " + e.getMessage());
+                // Display transactions using Stream API
+                System.out.println("Deserialized Transactions:");
+                transactionHistory.forEach(System.out::println);
+            }
 
         }
     }

@@ -1,10 +1,11 @@
 import accounts.AccountType;
 import services.BankMethods;
 //import transactions.Transaction;
+import java.io.IOException;
 import java.util.Scanner;
 
 public class OnlineBankingSystem {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         BankMethods bank = new BankMethods();
         Scanner scanner = new Scanner(System.in);
 
@@ -97,8 +98,10 @@ public class OnlineBankingSystem {
                     default:
                         System.out.println("Invalid option. Please try again.");
                 }
-            } catch (Exception e) {
-                System.out.println("Error: " + e.getMessage());
+            }
+            catch (Exception e)
+            {
+                System.out.println(e.getMessage());
             }
         }
     }
