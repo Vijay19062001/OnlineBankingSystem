@@ -1,6 +1,6 @@
 import accounts.AccountType;
 import services.BankMethods;
-
+//import transactions.Transaction;
 import java.util.Scanner;
 
 public class OnlineBankingSystem {
@@ -17,7 +17,8 @@ public class OnlineBankingSystem {
             System.out.println("5. Transfer");
             System.out.println("6. View Balance");
             System.out.println("7. View Transaction List");
-            System.out.println("8. Exit");
+            System.out.println("8. Load Transaction History");
+            System.out.println("9. Exit");
             System.out.println("====================================================================");
             System.out.print("Select an option: ");
             int option = scanner.nextInt();
@@ -44,7 +45,7 @@ public class OnlineBankingSystem {
                         break;
 
                     case 3:
-                        System.out.print("Enter Account Number: ");
+                        System.out.print("Enter the Account Number: ");
                         String depositAccountNumber = scanner.next();
                         System.out.print("Enter Amount to Deposit: ");
                         double depositAmount = scanner.nextDouble();
@@ -52,7 +53,7 @@ public class OnlineBankingSystem {
                         break;
 
                     case 4:
-                        System.out.print("Enter Account Number: ");
+                        System.out.print("Enter the Account Number: ");
                         String withdrawAccountNumber = scanner.next();
                         System.out.print("Enter Amount to Withdraw: ");
                         double withdrawAmount = scanner.nextDouble();
@@ -81,7 +82,14 @@ public class OnlineBankingSystem {
                         bank.viewTransactionList(transactionAccountNumber);
                         break;
 
-                    case 8:
+
+                        case 8:
+                            System.out.print("Enter Account Number: ");
+                             transactionAccountNumber = scanner.next();
+                          bank.loadTransactionHistory();
+                        break;
+
+                     case 9:
                         System.out.println("Exiting the system...");
                         scanner.close();
                         return;

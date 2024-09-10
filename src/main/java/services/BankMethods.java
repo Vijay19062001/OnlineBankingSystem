@@ -3,30 +3,27 @@ package services;
 import accounts.*;
 import customers.Customer;
 import exception.*;
-
 import transactions.*;
 
 import java.io.*;
-
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+public class BankMethods implements Bank, Serializable {
+    private static final long serialVersionUID = 2L; // Use the correct version
 
-public class BankMethods implements Bank {
     private static final String TRANSACTIONS_FILE = "transactions.txt";
-    private Map<String, Customer> customers = new HashMap<>();
-    private List<Transaction> transactionHistory=new ArrayList<>();
     private static final String CUSTOMERS_FILE = "customers.txt";
-
+    private Map<String, Customer> customers = new HashMap<>();
+    private List<Transactions> transactionHistory = new ArrayList<>();
 
     public BankMethods() {
         loadTransactionHistory();
         loadCustomers();
-
     }
-
-
 
     @Override
     public void createAccount(String customerId, String accountHolderName, AccountType accountType) throws Exception {
@@ -64,25 +61,14 @@ public class BankMethods implements Bank {
         }
         BankAccount account = findAccount(accountNumber);
         if (account != null) {
-            try {
-                Transaction deposit = new DepositTransaction(account, amount) {
-                    @Override
-                    public String getDetails() throws Exception {
-                        return "";
-                    }
-                };
-                deposit.perform();
-                transactionHistory.add(deposit);
-                saveTransaction(deposit);
-            } catch (Exception e) {
-                System.out.println("Transaction failed: " + e.getMessage());
-            }
-
+            Transactions deposit = new DepositTransaction(account, amount);
+            deposit.perform();
+            transactionHistory.add(deposit);
+            saveTransaction(deposit);
         } else {
-            throw new InvalidAccountNumberException("Account is not found.");
+            throw new InvalidAccountNumberException("Account not found.");
         }
     }
-
 
     @Override
     public void withdraw(String accountNumber, double amount) throws Exception {
@@ -94,35 +80,29 @@ public class BankMethods implements Bank {
             if (amount > account.getBalance()) {
                 throw new InsufficientFundsException("Insufficient funds in the account.");
             }
-            Transaction withdrawal = new WithdrawTransaction(account, amount);
+            Transactions withdrawal = new WithdrawTransaction(account, amount);
             withdrawal.perform();
             transactionHistory.add(withdrawal);
             saveTransaction(withdrawal);
         } else {
-            throw new InvalidAccountNumberException("Account is not a found.");
+            throw new InvalidAccountNumberException("Account not found.");
         }
     }
-
 
     @Override
-    public void transfer(String fromAccountNumber, String toAccountNumber, double amount) {
-        try {
-            BankAccount fromAccount = findAccountByNumber(fromAccountNumber);
-            BankAccount toAccount = findAccountByNumber(toAccountNumber);
+    public void transfer(String fromAccountNumber, String toAccountNumber, double amount) throws Exception {
+        BankAccount fromAccount = findAccount(fromAccountNumber);
+        BankAccount toAccount = findAccount(toAccountNumber);
 
-            if (fromAccount != null && toAccount != null) {
-                Transaction transferTransaction = new TransferTransaction(fromAccount, toAccount, amount);
-                transferTransaction.perform();
-                transactionHistory.add(transferTransaction);
-                saveTransaction(transferTransaction);
-            } else {
-                throw new InvalidAccountNumberException("One or both accounts not found.");
-            }
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
+        if (fromAccount != null && toAccount != null) {
+            Transactions transferTransaction = new TransferTransaction(fromAccount, toAccount, amount);
+            transferTransaction.perform();
+            transactionHistory.add(transferTransaction);
+            saveTransaction(transferTransaction);
+        } else {
+            throw new InvalidAccountNumberException("One or both accounts not found.");
         }
     }
-
 
     @Override
     public void viewTransactionList(String accountNumber) {
@@ -132,12 +112,13 @@ public class BankMethods implements Bank {
         }
 
         System.out.println("Transaction List for account: " + accountNumber);
-
-        account.getTransactionHistory()
-                .stream().forEach(System.out::println);
-
+        List<String> transactions = account.getTransactionHistory();
+        if (transactions.isEmpty()) {
+            System.out.println("No transactions found for this account.");
+        } else {
+            transactions.forEach(System.out::println);
+        }
     }
-
 
     @Override
     public void viewBalance(String accountNumber) throws Exception {
@@ -153,6 +134,7 @@ public class BankMethods implements Bank {
         try {
             if (validateCustomerId(customerId)) {
                 customers.put(customerId, new Customer(customerId, name));
+                saveCustomers();
                 System.out.println("Customer registered successfully.");
             } else {
                 throw new IllegalArgumentException("Invalid customer ID format.");
@@ -169,33 +151,22 @@ public class BankMethods implements Bank {
         return matcher.matches();
     }
 
-
     private String generateAccountNumber() {
         String base = "52341";
         int randomNumber = 100 + new Random().nextInt(900);
-        return base + randomNumber + "00012";  // Ensure last 5 digits are always 0012
+        return base + randomNumber + "00012";
     }
-
 
     private BankAccount findAccount(String accountNumber) {
-        for (Customer customer : customers.values()) {
-            for (BankAccount account : customer.getAccounts()) {
-                if (account.getAccountNumber().equals(accountNumber)) {
-                    return account;
-                }
-            }
-        }
-        return null;
+        return customers.values().stream()
+                .flatMap(customer -> customer.getAccounts().stream())
+                .filter(account -> account.getAccountNumber().equals(accountNumber))
+                .findFirst()
+                .orElse(null);
     }
-
-    private BankAccount findAccountByNumber(String accountNumber) {
-        return findAccount(accountNumber);
-    }
-
-
 
     private void saveCustomers() {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(CUSTOMERS_FILE))) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(Paths.get(CUSTOMERS_FILE)))) {
             oos.writeObject(customers);
             System.out.println("Customer data saved.");
         } catch (IOException e) {
@@ -204,7 +175,7 @@ public class BankMethods implements Bank {
     }
 
     private void loadCustomers() {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(CUSTOMERS_FILE))) {
+        try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(Paths.get(CUSTOMERS_FILE)))) {
             customers = (Map<String, Customer>) ois.readObject();
             System.out.println("Customer data loaded.");
         } catch (IOException | ClassNotFoundException e) {
@@ -212,24 +183,37 @@ public class BankMethods implements Bank {
         }
     }
 
-
-
-    public void saveTransaction(Transaction transaction) throws IOException {
-        transactionHistory.add(transaction);
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(TRANSACTIONS_FILE))) {
-            oos.writeObject(transactionHistory);
+    private void saveTransaction(Transactions transaction) throws IOException {
+        try (FileOutputStream fos = new FileOutputStream(TRANSACTIONS_FILE, true);
+             ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+            oos.writeObject(transaction);
             System.out.println("Transaction data saved.");
         } catch (IOException e) {
             System.out.println("Failed to save transaction data: " + e.getMessage());
         }
     }
 
-    private void loadTransactionHistory() {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(TRANSACTIONS_FILE))) {
-            transactionHistory = (List<Transaction>) ois.readObject();
+    public void loadTransactionHistory() {
+
+        try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(Paths.get(TRANSACTIONS_FILE)))) {
+            List<Transactions> tempTransactionHistory = new ArrayList<>();
+                try {
+                    Transactions transaction = (Transactions) ois.readObject();
+                    tempTransactionHistory.add(transaction);
+                } catch (Exception e) {
+                    System.out.println("error");
+                }
+            transactionHistory = tempTransactionHistory;
+
+            // Replace the old transaction history with the newly loaded on
             System.out.println("Transaction history loaded.");
-        } catch (IOException | ClassNotFoundException e) {
-            System.out.println("No existing transaction data found.");
+
+            // Display transactions using Stream API
+            System.out.println("Deserialized Transactions:");
+            transactionHistory.forEach(System.out::println);
+
+        } catch (IOException e) {
+            System.out.println("Error loading transaction history: " + e.getMessage());
         }
     }
 }

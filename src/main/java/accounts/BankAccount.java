@@ -1,12 +1,14 @@
 package accounts;
 
+import transactions.Transactions;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 
 public class BankAccount implements Serializable {
-    private static final long serialVersionUID = 1L;
+
 
     private String accountNumber;
     private String accountHolderName;
@@ -36,7 +38,7 @@ public class BankAccount implements Serializable {
     public void deposit(double amount) {
         if (amount > 0) {
             this.balance = balance + amount;
-            transactionHistory.add("Deposited: $" + amount + " | Balance: $" + balance);
+            addTransaction("Deposited: $" + amount + " | Balance: $" + balance);
 
         }
     }
@@ -44,7 +46,7 @@ public class BankAccount implements Serializable {
     public boolean withdraw(double amount) {
         if (amount > 0 && amount <= balance) {
             this.balance = balance - amount;
-            transactionHistory.add("Withdrawn: $" + amount + " | Balance: $" + balance);
+            addTransaction("Withdrawn: $" + amount + " | Balance: $" + balance);
             return true;
         }
         return false;

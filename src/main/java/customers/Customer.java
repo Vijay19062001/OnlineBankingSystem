@@ -9,11 +9,12 @@ import java.util.List;
 public class Customer implements Serializable {
     private String customerId;
     private String name;
-    private List<BankAccount> accounts = new ArrayList<>();
+    private List<BankAccount> accounts;
 
     public Customer(String customerId, String name) {
         this.customerId = customerId;
         this.name = name;
+        this.accounts = new ArrayList<>();
     }
 
     public String getCustomerId() {
